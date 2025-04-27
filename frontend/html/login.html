@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+    <!-- LOGIN CLIENTE -->
+    <div class="container" id="auth">
+        <h2>Iniciar Sesión Cliente</h2>
+        <form onsubmit="login(event)">
+            <label>Nombre o Correo</label>
+            <input type="text" id="login-user" required />
+            <label>Contraseña</label>
+            <input type="password" id="login-pass" required />
+            <div class="button-group">
+                <button class="primary" type="submit">Ingresar</button>
+                <button class="secondary" type="button" onclick="App.showRegister()">Registrarse</button>
+            </div>
+        </form>
+    </div>
+</body>
+
+<script>
+    function login(event) {
+        event.preventDefault();
+        const input = document.getElementById("login-user").value;
+        const pass = document.getElementById("login-pass").value;
+
+        // Check if user input is empty
+        if (!input || !pass) {
+            alert("Por favor, complete todos los campos.");
+            return;
+        }
+        // Check if user input is valid
+        const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!regex.test(input)) {
+            alert("Por favor, ingrese un correo electrónico válido.");
+            return;
+        }
+
+        // hacer peticion a api
+        fetch("http://localhost:8000/users/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                email: input,
+                password: pass,
+            }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("Error en la autenticación");
+                }
+                return response.json();
+            })
+            .then((data) => {
+                if (data.status === "success") {
+                    alert("Inicio de sesión exitoso");
+                    // Redirigir a la página de reservas
+                    window.location.href = "reservas.html";
+                } else {
+                    alert("Credenciales incorrectas");
+                }
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                alert("Error en la autenticación");
+            });
+    }
+</script>
+
+</html>
