@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu | Restaurante</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="shortcut icon" href="/static/assets/favicon.ico" type="image/x-icon">
+</head>
+
+<style>
+    #menu {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        gap: 20px;
+    }
+
+    .menu-items {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .menu-items button {
+        padding: 10px 20px;
+        border-radius: 5px;
+        border: none;
+        background-color: #eb8c10;
+        color: white;
+        cursor: pointer;
+    }
+
+    .menu-items #logout {
+        background-color: #6d0000;
+    }
+
+    .menu-items button:focus {
+        outline: none;
+    }
+
+    .menu-items button:hover {
+        background-color: #333;
+    }
+</style>
+
+<body>
+    <div class="background-image"></div>
+    <!-- MENU -->
+    <div class="container" id="menu">
+        <h2>Menu</h2>
+        <div class="menu-items">
+            <button onclick="window.location.href='/reservas/create/{userId}'">Crear Reserva</button>
+            <button onclick="window.location.href='/user/reservas/'">Mis Reservas</button>
+            <button id="logout" onclick="logout()">Cerrar Sesión</button>
+        </div>
+    </div>
+</body>
+
+<script>
+    // Obtener el userId de localStorage
+    const userId = localStorage.getItem("userId");
+
+    // Verificar si userId es nulo
+    if (!userId) {
+        alert("Por favor, inicie sesión.");
+        window.location.href = "../";
+    }
+
+    // Reemplazar dinámicamente {userId} en los botones
+    const createReservaButton = document.querySelector("button[onclick*='/reservas/create/{userId}']");
+
+    if (createReservaButton) {
+        createReservaButton.setAttribute("onclick", `window.location.href='/reservas/create/${userId}'`);
+    }
+
+    function logout() {
+        // Eliminar userId de localStorage
+        localStorage.removeItem("userId");
+        // Redirigir a la página de inicio de sesión
+        window.location.href = "../";
+    }
+</script>
+
+</html>

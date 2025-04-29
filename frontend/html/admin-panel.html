@@ -335,7 +335,7 @@
             personas: parseInt(personas),
         };
 
-        fetch(`http://localhost:8000/reservas/${reservaId}/`, {
+        fetch(`http://localhost:8000/reservas/${reservaId}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -348,6 +348,7 @@
                     loadReservations(); // Recargar la tabla
                 } else {
                     alert("Error al actualizar la reserva");
+                    console.error("Error response:", response); // Log the error response for debugging
                 }
             })
             .catch((error) => console.error("Error updating reservation:", error));

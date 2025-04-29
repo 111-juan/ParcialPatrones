@@ -13,7 +13,7 @@ RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 COPY ./ /app
 
 # Exponer el puerto en el que se ejecutará la aplicación
-EXPOSE 8000
+EXPOSE 5500
 
 # Comando para ejecutar la aplicación con Uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5500", "--reload"]

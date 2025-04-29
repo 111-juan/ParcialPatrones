@@ -70,6 +70,7 @@
     <div class="container" id="main">
         <form id="reservation-form" onsubmit="event.preventDefault(); generateTicket();">
             <h2>Crear Reserva</h2>
+            <p style="display: none;" id="userId">{{userId}}</p>
             <div class="form-input">
                 <label for="restaurant">Restaurante</label>
                 <input type="text" id="restaurant" value="La Casa Criolla" readonly />
@@ -142,6 +143,7 @@
             alert("Por favor, selecciona el número de personas.");
             return;
         }
+        const userId = document.getElementById("userId").innerText;
         const restaurant = document.getElementById("restaurant").value;
         const date = document.getElementById("date").value;
         const selectedDate = new Date(date);
@@ -158,11 +160,11 @@
             fecha: date, // Fecha de la reserva
             hora_inicio: time, // Hora de inicio de la reserva
             personas: people, // Número de personas
-            usuario_id: 1, // ID del usuario (esto debe ser dinámico si tienes autenticación)
+            usuario_id: userId, // ID del usuario (esto debe ser dinámico si tienes autenticación)
         };
 
         // hacer peticion a api
-        fetch("http://localhost:8000/reservas/create", {
+        fetch("http://localhost:8000/reservas/create/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

@@ -75,7 +75,8 @@
                         window.location.href = "reservas/view/";
                     } else {
                         // Redirigir a la página de reservas
-                        window.location.href = "reservas/create/";
+                        window.localStorage.setItem("userId", response.data.user.id);
+                        window.location.href = `menu`;
                     }
                 } else {
                     alert("Credenciales incorrectas");

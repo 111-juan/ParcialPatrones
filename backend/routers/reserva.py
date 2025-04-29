@@ -100,25 +100,31 @@ def create_reserva(reserva: ReservaCreate, session: SessionDep) -> APIResponse:
     )
 
 
-def select_table(capacidad: int, fecha: str, hora: str, session: SessionDep):
+def select_table(capacidad: int, fecha: str, hora: str, session: SessionDep, mesa_id: int | None = None):
     # Obtener la mesa con la capacidad requerida
     mesas = session.exec(
         select(Table).where(Table.capacidad >=
                             capacidad)
-    )
+    ).all()
+
+    if not mesas:
+        raise HTTPException(status_code=404, detail="No available table found")
 
     # Ver que no tengan reservas activas a esta hora
     reservas = session.exec(
         select(Reserva).where(
             Reserva.fecha == fecha,
-            cast(Reserva.hora_inicio, Time) == cast(hora, Time),
+            Reserva.hora_inicio == hora,
             Reserva.estado == "activa",
         )
     ).all()
     mesas_reservadas = [reserva.mesa_id for reserva in reservas]
+
     mesas = [mesa for mesa in mesas if mesa.id not in mesas_reservadas]
     if not mesas:
         raise HTTPException(status_code=404, detail="No available table found")
+    if mesa_id:
+        mesas.append(mesa_id)
 
     # Si hay mesas disponibles, seleccionar la más cercana a la capacidad requerida
     min_diferencia = 0
@@ -203,6 +209,80 @@ def get_reserva(reserva_id: int, session: SessionDep) -> APIResponse:
     )
 
 
+@router.get("/user/{user_id}/")
+def get_reservas_by_user(user_id: int, session: SessionDep) -> APIResponse:
+    reservas = session.exec(
+        select(Reserva).where(Reserva.usuario_id == user_id)).all()
+    if not reservas:
+        raise HTTPException(
+            status_code=404, detail="No reservations found for this user")
+
+    reservas_data = []
+    for reserva in reservas:
+        # Obtener nombre y cedula del usuario
+        user = session.exec(select(User.name, User.cedula).where(
+            User.id == reserva.usuario_id)).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Obtener la mesa con la capacidad requerida
+        mesa = session.exec(select(Table).where(
+            Table.id == reserva.mesa_id)).first()
+        if not mesa:
+            raise HTTPException(status_code=404, detail="Table not found")
+
+        reservas_data.append({
+            "reserva": {
+                "id": reserva.id,
+                "fecha_creacion": reserva.fecha_creacion,
+                "fecha": reserva.fecha,
+                "hora_inicio": reserva.hora_inicio,
+                "estado": reserva.estado,
+                "personas": reserva.personas,
+            },
+            "mesa": {
+                "numero": mesa.numero,
+                "capacidad": mesa.capacidad,
+            },
+            "usuario": {
+                "id": reserva.usuario_id,
+                "nombre": user.name,
+                "cedula": user.cedula,
+            },
+        })
+
+    return APIResponse(
+        code=200,
+        status="success",
+        message="Reservations retrieved successfully",
+        data={"reservas": reservas_data},
+    )
+
+
+@router.put("/cancel/{reserva_id}/")
+def cancel_reserva(reserva_id: int, session: SessionDep) -> APIResponse:
+    reserva = session.get(Reserva, reserva_id)
+    if not reserva:
+        raise HTTPException(status_code=404, detail="Reservation not found")
+
+    # Cambiar el estado de la reserva a "cancelada"
+    reserva.estado = "cancelada"
+
+    # Actualizar la reserva en la base de datos
+    session.add(reserva)
+    session.commit()
+    session.refresh(reserva)
+
+    return APIResponse(
+        code=200,
+        status="success",
+        message="Reservation cancelled successfully",
+        data={
+            "reserva": reserva
+        },
+    )
+
+
 @router.delete("/{reserva_id}/")
 def delete_reserva(reserva_id: int, session: SessionDep) -> APIResponse:
     reserva = session.get(Reserva, reserva_id)
@@ -221,7 +301,7 @@ def delete_reserva(reserva_id: int, session: SessionDep) -> APIResponse:
     )
 
 
-@router.put("/{reserva_id}/")
+@router.put("/{reserva_id}")
 def update_reserva(reserva_id: int, reserva: ReservaUpdate, session: SessionDep) -> APIResponse:
     reserva_db = session.get(Reserva, reserva_id)
     if not reserva_db:
@@ -233,17 +313,17 @@ def update_reserva(reserva_id: int, reserva: ReservaUpdate, session: SessionDep)
     reserva_db.hora_inicio = reserva.hora
     reserva_db.personas = reserva.personas
 
+    # Actualizar el estado de la reserva
+    reserva_db.estado = reserva.estado
+
     # Obtener la nueva mesa con la capacidad requerida
     mesa_nueva = select_table(
-        reserva.personas, reserva.fecha, reserva.hora, session)
+        reserva.personas, reserva.fecha, reserva.hora, session, reserva_db.mesa_id)
     if not mesa_nueva:
         raise HTTPException(status_code=404, detail="No available table found")
 
     # Actualizar la mesa de la reserva
     reserva_db.mesa_id = mesa_nueva.id
-
-    # Actualizar el estado de la reserva
-    reserva_db.estado = reserva.estado
 
     # Obtener nombre y cedula del usuario
     user = session.exec(select(User.id, User.name).where(
