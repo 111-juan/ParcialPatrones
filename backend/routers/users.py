@@ -14,17 +14,11 @@ router = APIRouter(prefix="/users")
 @router.post("/register/")
 def create_user(user: UserCreate, session: SessionDep) -> APIResponse:
     # Verificar si el correo ya está registrado
-    print(user)
-    try:
-        existing_user = session.exec(
-            select(User).where(User.email == user.email)).first()
-        if existing_user:
-            raise HTTPException(
-                status_code=400, detail="Email already registered")
-    except Exception as e:
-        print("Error en consulta:", str(e))
+    existing_user = session.exec(
+        select(User).where(User.email == user.email)).first()
+    if existing_user:
         raise HTTPException(
-            status_code=500, detail="Database error: " + str(e))
+            status_code=400, detail="Email already registered")
 
     try:
         # Crear el usuario principal
@@ -159,14 +153,7 @@ def read_user(user_id: int, session: SessionDep) -> APIResponse:
             code=200,
             status="success",
             message="User retrieved successfully",
-            data={
-                "user": {
-                    "id": user.id,
-                    "email": user.email,
-                    "name": user.name,
-                    "roles": user.roles,
-                }
-            },
+            data={"user": user.model_dump()},
         )
     except HTTPException as http_exc:
         # Re-lanzar excepciones HTTP específicas
@@ -200,6 +187,87 @@ def delete_user(user_id: int, session: SessionDep) -> APIResponse:
                     "id": user.id,
                     "email": user.email,
                     "name": user.name,
+                }
+            },
+        )
+    except HTTPException as http_exc:
+        # Re-lanzar excepciones HTTP específicas
+        raise http_exc
+    except Exception as e:
+        # Manejar errores inesperados
+        raise HTTPException(
+            status_code=500, detail=f"An unexpected error occurred: {str(e)}"
+        )
+
+
+@router.put("/{user_id}")
+def update_user(user_id: int, user: UserCreate, session: SessionDep) -> APIResponse:
+    try:
+        # Buscar el usuario por ID
+        user_db = session.get(User, user_id)
+        if not user_db:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Actualizar los campos del usuario
+        user_db.name = user.name
+        user_db.email = user.email
+
+        # Guardar los cambios en la base de datos
+        session.add(user_db)
+        session.commit()
+        session.refresh(user_db)
+
+        # Respuesta exitosa
+        return APIResponse(
+            code=200,
+            status="success",
+            message="User updated successfully",
+            data={
+                "user": {
+                    "id": user_db.id,
+                    "email": user_db.email,
+                    "name": user_db.name,
+                    "roles": user_db.roles,
+                }
+            },
+        )
+    except HTTPException as http_exc:
+        # Re-lanzar excepciones HTTP específicas
+        raise http_exc
+    except Exception as e:
+        # Manejar errores inesperados
+        raise HTTPException(
+            status_code=500, detail=f"An unexpected error occurred: {str(e)}"
+        )
+
+
+@router.put("/{user_id}/roles/")
+def update_user_roles(user_id: int, roles: list[str], session: SessionDep) -> APIResponse:
+    try:
+        # Buscar el usuario por ID
+        user_db = session.get(User, user_id)
+        if not user_db:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Actualizar los roles del usuario
+        user_db.roles = roles
+
+        # Guardar los cambios en la base de datos
+        session.add(user_db)
+        session.commit()
+        session.refresh(user_db)
+
+        # Respuesta exitosa
+        return APIResponse(
+            code=200,
+            status="success",
+            message="User roles updated successfully",
+            data={
+                "user": {
+                    "id": user_db.id,
+                    "email": user_db.email,
+                    "name": user_db.name,
+                    "roles": user_db.roles,
                 }
             },
         )

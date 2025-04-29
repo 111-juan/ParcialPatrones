@@ -4,22 +4,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="../style.css">
+    <title>Iniciar Sesión | Restaurante</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="shortcut icon" href="/static/assets/favicon.ico" type="image/x-icon">
 </head>
 
 <body>
+    <div class="background-image"></div>
     <!-- LOGIN CLIENTE -->
     <div class="container" id="auth">
-        <h2>Iniciar Sesión Cliente</h2>
         <form onsubmit="login(event)">
-            <label>Nombre o Correo</label>
-            <input type="text" id="login-user" required />
-            <label>Contraseña</label>
-            <input type="password" id="login-pass" required />
+            <h2>Iniciar Sesión</h2>
+            <div class="form-input">
+                <label for="login-user">Correo electronico</label>
+                <input type="text" id="login-user" required />
+            </div>
+            <div class="form-input">
+                <label for="login-pass">Contraseña</label>
+                <input type="password" id="login-pass" required />
+            </div>
             <div class="button-group">
                 <button class="primary" type="submit">Ingresar</button>
-                <button class="secondary" type="button" onclick="App.showRegister()">Registrarse</button>
+                <p>o</p>
+                <button class="secondary" type="button" onclick="window.location.href='register'">Registrarse</button>
             </div>
         </form>
     </div>
@@ -60,11 +67,16 @@
                 }
                 return response.json();
             })
-            .then((data) => {
-                if (data.status === "success") {
+            .then((response) => {
+                if (response.status === "success") {
                     alert("Inicio de sesión exitoso");
-                    // Redirigir a la página de reservas
-                    window.location.href = "reservas.html";
+                    if (response.data.user.roles.includes("admin")) {
+                        // Redirigir a la página de administración
+                        window.location.href = "reservas/view/";
+                    } else {
+                        // Redirigir a la página de reservas
+                        window.location.href = "reservas/create/";
+                    }
                 } else {
                     alert("Credenciales incorrectas");
                 }

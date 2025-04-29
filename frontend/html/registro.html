@@ -4,30 +4,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="../style.css">
+    <title>Registro Usuario | Restaurante</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="shortcut icon" href="/static/assets/favicon.ico" type="image/x-icon">
 </head>
 
 <body>
+    <div class="background-image"></div>
     <!-- REGISTRO -->
     <div class="container" id="register">
         <h2>Registro de Usuario</h2>
         <form onsubmit="register(event)">
-            <label>Nombre</label>
-            <input type="text" id="reg-name" required />
-            <label>Apellido</label>
-            <input type="text" id="reg-lastname" required />
-            <label>Cédula</label>
-            <input type="text" id="reg-id" oninput="validateID(this)" required />
-            <label>Correo</label>
-            <input type="email" id="reg-email" required />
-            <label>Fecha de nacimiento</label>
-            <input type="date" id="reg-birth" required />
-            <label>Contraseña</label>
-            <input type="password" id="reg-pass" required />
+            <div class="form-input">
+                <label for="reg-name">Nombre</label>
+                <input type="text" id="reg-name" required />
+            </div>
+            <div class="form-input">
+                <label for="reg-lastname">Apellido</label>
+                <input type="text" id="reg-lastname" required />
+            </div>
+            <div class="form-input">
+                <label for="reg-id">Cédula</label>
+                <input type="text" id="reg-id" oninput="validateID(this)" required />
+            </div>
+            <div class="form-input">
+                <label for="reg-phone">Telefono</label>
+                <input type="text" id="reg-phone" required />
+            </div>
+            <div class="form-input">
+                <label for="reg-email">Correo</label>
+                <input type="email" id="reg-email" required />
+            </div>
+            <div class="form-input">
+                <label for="reg-birth">Fecha de nacimiento</label>
+                <input type="date" id="reg-birth" required />
+            </div>
+            <div class="form-input">
+                <label for="reg-pass">Contraseña</label>
+                <input type="password" id="reg-pass" required />
+            </div>
             <div class="button-group">
                 <button class="primary" type="submit">Registrarme</button>
-                <button class="secondary" type="button" onclick="window.history.back">Volver</button>
+                <button class="secondary" type="button" onclick="window.history.back()">Volver</button>
             </div>
         </form>
     </div>
@@ -39,33 +57,31 @@
         const user = {
             name: document.getElementById("reg-name").value + " " + document.getElementById("reg-lastname").value,
             cedula: document.getElementById("reg-id").value,
+            phone: document.getElementById("reg-phone").value,
             email: document.getElementById("reg-email").value,
             birthdate: document.getElementById("reg-birth").value,
             password: document.getElementById("reg-pass").value,
         };
 
-        // Check if user input is empty
-        if (!user.name || !user.cedula || !user.email || !user.birthdate || !user.password) {
+        // Validaciones
+        if (!user.name || !user.cedula || !user.phone || !user.email || !user.birthdate || !user.password) {
             alert("Por favor, complete todos los campos.");
             return;
         }
-        // Check if user input is valid
+
         const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!regex.test(user.email)) {
             alert("Por favor, ingrese un correo electrónico válido.");
             return;
         }
-        // Check if ID is valid
+
         const idRegex = /^[0-9]{1,10}$/;
         if (!idRegex.test(user.cedula)) {
             alert("Por favor, ingrese una cédula válida.");
             return;
         }
 
-        console.log(JSON.stringify(user));
-
-
-        // hacer peticion a api
+        // Hacer la petición a la API
         fetch("http://localhost:8000/users/register/", {
             method: "POST",
             headers: {
@@ -74,22 +90,26 @@
             body: JSON.stringify(user),
         })
             .then((response) => {
-                console.log(response);
-
-                if (response.status != "success") {
-                    throw new Error(response.json());
+                if (!response.ok) {
+                    // Si la respuesta no es exitosa, lanza un error con el cuerpo de la respuesta
+                    return response.json().then((errorData) => {
+                        throw new Error(errorData.message || "Error en el servidor");
+                    });
                 }
-                if (response.code == 201) {
+                return response.json(); // Extraer el cuerpo de la respuesta si es exitosa
+            })
+            .then((data) => {
+                if (data.status === "success") {
                     alert("Registro exitoso");
                     // Redirigir a la página de reservas
-                    window.location.href = "reservas.html";  // Added return statement to properly handle the promise
+                    window.location.href = "";
+                } else {
+                    alert("Error en el registro: " + data.message);
                 }
             })
             .catch((error) => {
-                alert("Error en el registro: " + error);
-                // Manejar el error de manera adecuada
+                alert("Error en el registro: " + error.message);
                 console.error("Error:", error);
-
             });
     }
 

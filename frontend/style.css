@@ -1,73 +1,117 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    color: #4d4d4d;
+}
+
 body {
     font-family: "Comic Sans MS", cursive, sans-serif;
-    font-size: 20px;
-    background-image: url(imagen.png);
+    font-size: 18px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 50px 0;
+}
+
+.background-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    background-image: url(/static/assets/imagen.png);
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
-    margin: 50px;
-    padding: 130px;
-  }
-  
-  .container {
-    width: 110%;
-    max-width: 600px;
-    margin: 90px auto;
+    filter: brightness(0.4) contrast(0.7) blur(3px);
+    z-index: -1;
+    /* Asegura que el fondo esté detrás del contenido */
+}
+
+.container {
+    width: 100%;
+    max-width: 350px;
     background: rgb(220, 221, 160);
-    padding: 80px;
-    border-radius: 80px;
+    padding: 50px;
+    border-radius: 10px;
     box-shadow: 0 0 10px rgba(211, 169, 169, 0.1);
-  }
-  
-  h2, h3 {
+}
+
+h2,
+h3 {
     text-align: center;
-  }
-  
-  form {
+}
+
+form {
     display: flex;
     flex-direction: column;
-  }
-  
-  label {
-    margin-top: 100px;
-    font-weight: bold;
-  }
-  
-  input, select, button {
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #fcfcfc;
-    border-radius: 50px;
-    font-size: 19px;
-  }
-  
-  button {
+    gap: 50px;
+}
+
+.form-input {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-input label {
+    color: #4d4d4d;
+}
+
+input {
+    padding: 6px 10px;
+    border-radius: 10px;
+    width: 100%;
+    border: none;
+
+}
+
+/* eliminar evento al estar activo input */
+input:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+select,
+button {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 10px;
+}
+
+button {
     background-color: #eb8c10;
     color: rgb(255, 255, 255);
     cursor: pointer;
-    margin-top: 50px;
-  }
-  
-  button:hover {
-    background-color: #1de0e0;
-  }
-  
-  button.secondary {
-    background-color: #6c757d;
-    margin-top: 10px;
-  }
-  
-  button.secondary:hover {
+    font-size: 1.1rem;
+}
+
+button:hover {
+    transform: scale(1.05);
+    transition: all 0.2s;
+}
+
+button.secondary {
     background-color: #495055;
-  }
-  
-  .button-group {
+    color: #eb8c10;
+}
+
+.button-group {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: center;
     gap: 10px;
-  }
-  
-  .hidden {
+    width: 100%;
+}
+
+.button-group button {
+    width: 100%;
+    max-width: 200px;
+}
+
+.hidden {
     display: none;
-  }
-  
+}

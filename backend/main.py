@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 
 from dependencies.database import create_db_and_tables
 from routers import users
+from routers import reserva
 from models.api_response import APIResponse
 
 
@@ -41,6 +42,7 @@ def on_startup():
 
 # agregar routers
 app.include_router(users.router)
+app.include_router(reserva.router)
 
 
 @app.get("/")

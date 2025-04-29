@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurante</title>
+    <link rel="stylesheet" href="/static/style.css"> <!-- Added link to CSS -->
+    <link rel="shortcut icon" href="/static/assets/favicon.ico" type="image/x-icon">
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<style>
+    #admin-panel {
+        width: 100%;
+        max-width: none;
+        /* min-width: 1000px; */
+        background-color: transparent;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    #admin-panel h2 {
+        font-size: 36px;
+        margin-bottom: 20px;
+        color: white;
+    }
+
+    #filters {
+        display: flex;
+        /* flex-direction: column; */
+        align-items: center;
+        gap: 20px;
+    }
+
+    #filters .search {
+        display: flex;
+        flex-direction: column;
+        width: 50%;
+        gap: 10px;
+        /* margin-bottom: 20px; */
+        align-items: center;
+    }
+
+    #filters .search button {
+        width: 30%;
+    }
+
+    #search-bar {
+        width: 60%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    #filter-column {
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .estado {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Estilos para la tabla */
+    #reservations-table {
+        border-collapse: collapse;
+        font-size: 18px;
+        background-color: #f9f9f9;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    #reservations-table th,
+    #reservations-table td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: center;
+    }
+
+    #reservations-table th {
+        background-color: #4CAF50;
+        color: white;
+        font-weight: bold;
+    }
+
+    #reservations-table tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    #reservations-table tr:hover {
+        background-color: #ddd;
+    }
+
+    #reservations-table td button {
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    #reservations-table td button i {
+        font-size: 20px;
+    }
+
+    #reservations-table td button i:hover {
+        transform: scale(1.2);
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .acciones {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+</style>
+
+<body>
+    <div class="background-image"></div>
+    <div id="admin-panel" class="container">
+        <h2>Panel de Administrador</h2>
+        <div id="filters">
+            <div class="search">
+                <input oninput="filterClient()" type="text" id="search-client"
+                    placeholder="Buscar por cliente o cédula..." />
+            </div>
+            <div class="search">
+                <input oninput="filterId()" type="text" id="search-id" placeholder="Buscar por ID de reserva..."
+                    oninput="filterTable()" />
+            </div>
+            <select id="filter-column" onchange="filterTable()">
+                <option value="">Todos</option>
+                <option value="activa">Activas</option>
+                <option value="cancelada">Canceladas</option>
+                <option value="vencida">Vencidas</option>
+                <option value="completada">Completadas</option>
+            </select>
+        </div>
+        <table id="reservations-table">
+            <thead>
+                <tr>
+                    <th>Estado</th>
+                    <th>ID Reserva</th>
+                    <th>Cliente</th>
+                    <th>Cedula</th>
+                    <th>Telefono</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Personas</th>
+                    <th>Mesa</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Aquí se cargarán las reservas existentes -->
+                <tr id="new-reservation-row">
+                    <td>
+                        <select id="new-estado">
+                            <option value="activa">Activa</option>
+                            <option value="cancelada">Cancelada</option>
+                            <option value="completada">Completada</option>
+                            <option value="vencida">Vencida</option>
+                        </select>
+                    </td>
+                    <td>Auto</td> <!-- ID generado automáticamente -->
+                    <td><input type="text" id="new-cliente" placeholder="Nombre del cliente" required /></td>
+                    <td><input type="text" id="new-cedula" placeholder="Cédula del cliente" required /></td>
+                    <td><input type="date" id="new-fecha" required /></td>
+                    <td>
+                        <select id="new-hora" required>
+                            <option value="13:00">13:00</option>
+                            <option value="14:00">14:00</option>
+                            <option value="15:00">15:00</option>
+                            <option value="16:00">16:00</option>
+                            <option value="17:00">17:00</option>
+                            <option value="18:00">18:00</option>
+                            <option value="19:00">19:00</option>
+                            <option value="20:00">20:00</option>
+                            <option value="21:00">21:00</option>
+                            <option value="22:00">22:00</option>
+                        </select>
+                    </td>
+                    <td><input type="number" id="new-personas" min="1" max="10" placeholder="Personas" required /></td>
+                    <td><input type="number" id="new-mesa" placeholder="Mesa" required /></td>
+                    <td>
+                        <button onclick="createReservation()" title="Crear"
+                            style="background: none; border: none; cursor: pointer;">
+                            <i class="fas fa-plus-circle" style="font-size: 20px; color: green;"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+
+<script>
+    // al iniciar obtener las reservas
+    document.addEventListener('DOMContentLoaded', function () {
+        loadReservations();
+    });
+    function loadReservations() {
+        fetch('http://localhost:8000/reservas/')
+            .then(response => response.json())
+            .then(response => {
+                const tableBody = document.querySelector('#reservations-table tbody');
+                tableBody.innerHTML = ''; // Clear existing rows
+                // ordenar por fecha y hora
+                response.data.reservas.sort((a, b) => {
+                    const dateA = new Date(a.reserva.fecha + ' ' + a.reserva.hora_inicio);
+                    const dateB = new Date(b.reserva.fecha + ' ' + b.reserva.hora_inicio);
+                    return dateA - dateB;
+                });
+                // agregar las reservas a la tabla
+                response.data.reservas.forEach(data => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <div class="estado">
+                                <i class="${data.reserva.estado === 'activa' ? 'fas fa-check-circle' : data.reserva.estado === 'cancelada' ? 'fas fa-times-circle' : data.reserva.estado === 'vencida' ? 'fas fa-exclamation-circle' : 'fas fa-clock'}" 
+                                style="color: ${data.reserva.estado === 'activa' ? 'green' : data.reserva.estado === 'cancelada' ? 'red' : data.reserva.estado === 'vencida' ? 'purple' : 'orange'};"></i>
+                                ${data.reserva.estado.charAt(0).toUpperCase() + data.reserva.estado.slice(1)}
+                            </div>
+                        </td>
+                        <td>${data.reserva.id}</td>
+                        <td>${data.usuario.nombre}</td>
+                        <td>${data.usuario.cedula}</td>
+                        <td>${data.usuario.telefono}</td>
+                        <td>
+                            <input type="date" id="fecha" value="${data.reserva.fecha}" readonly/>
+                        </td>
+                        <td>${data.reserva.hora_inicio}</td>
+                        <td>${data.reserva.personas}</td>
+                        <td>${data.mesa.numero}</td>
+                        <td>
+                            <div class="acciones">
+                                <button onclick="editReservation(${data.reserva.id})" title="Modificar" style="background: none; border: none; cursor: pointer;">
+                                    <i class="fa fa-pencil" aria-hidden="true" style="font-size: 20px;"></i>
+                                </button>
+                                <button onclick="deleteReservation(${data.reserva.id})" title="Eliminar" style="background: none; border: none; cursor: pointer;">
+                                    <i class="fas fa-trash-alt" style="font-size: 20px; color: #dc3545;"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error fetching reservations:', error));
+    }
+
+    function editReservation(reservaId) {
+        const tableRows = document.querySelectorAll("#reservations-table tbody tr");
+
+        tableRows.forEach((row) => {
+            const cells = row.querySelectorAll("td");
+            const idReserva = cells[1] ? cells[1].textContent : "";
+
+            if (idReserva == reservaId) {
+                // Convertir estado en un <select>
+                const estadoCell = cells[0];
+                const currentEstado = estadoCell.textContent.trim().toLowerCase();
+                estadoCell.innerHTML = `
+                    <select id="edit-estado">
+                        <option value="activa" ${currentEstado === "activa" ? "selected" : ""}>Activa</option>
+                        <option value="cancelada" ${currentEstado === "cancelada" ? "selected" : ""}>Cancelada</option>
+                        <option value="completada" ${currentEstado === "completada" ? "selected" : ""}>Completada</option>
+                        <option value="vencida" ${currentEstado === "vencida" ? "selected" : ""}>Vencida</option>
+                    </select>
+                `;
+
+                // Convertir cédula en un <input>
+                const cedulaCell = cells[3];
+                const currentCedula = cedulaCell.textContent.trim();
+                cedulaCell.innerHTML = `<input type="text" id="edit-cedula" value="${currentCedula}" />`;
+
+                // Convertir fecha en un <input type="date">
+                const fechaCell = cells[5];
+                const currentFecha = document.getElementById("fecha").value;
+                fechaCell.innerHTML = `<input type="date" id="edit-fecha" value="${currentFecha}" />`;
+
+                // Convertir hora en un <select>
+                const horaCell = cells[6];
+                const currentHora = horaCell.textContent.trim();
+                const horasDisponibles = [
+                    "13:00", "14:00", "15:00", "16:00", "17:00",
+                    "18:00", "19:00", "20:00", "21:00", "22:00"
+                ];
+                const horaOptions = horasDisponibles
+                    .map(hora => `<option value="${hora + ":00"}" ${hora === currentHora ? "selected" : ""}>${hora}</option>`)
+                    .join("");
+                horaCell.innerHTML = `<select id="edit-hora">${horaOptions}</select>`;
+
+                // Convertir personas en un <input type="number">
+                const personasCell = cells[7];
+                const currentPersonas = personasCell.textContent.trim();
+                personasCell.innerHTML = `<input type="number" id="edit-personas" value="${currentPersonas}" min="1" />`;
+
+                // Cambiar los botones de acción a "Guardar" y "Cancelar"
+                const accionesCell = cells[9];
+                accionesCell.innerHTML = `
+                    <button onclick="saveReservation(${reservaId})" title="Guardar" style="background: none; border: none; cursor: pointer;">
+                        <i class="fas fa-save" style="font-size: 20px; color: green;"></i>
+                    </button>
+                    <button onclick="cancelEdit(${reservaId})" title="Cancelar" style="background: none; border: none; cursor: pointer;">
+                        <i class="fas fa-times" style="font-size: 20px; color: red;"></i>
+                    </button>
+                `;
+            }
+        });
+    }
+
+    function saveReservation(reservaId) {
+        const estado = document.getElementById("edit-estado").value;
+        const cedula = document.getElementById("edit-cedula").value;
+        const fecha = document.getElementById("edit-fecha").value;
+        const hora = document.getElementById("edit-hora").value;
+        const personas = document.getElementById("edit-personas").value;
+
+        const updatedReservation = {
+            estado,
+            cedula,
+            fecha,
+            hora: hora,
+            personas: parseInt(personas),
+        };
+
+        fetch(`http://localhost:8000/reservas/${reservaId}/`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedReservation),
+        })
+            .then((response) => {
+                if (response.ok) {
+                    alert("Reserva actualizada con éxito");
+                    loadReservations(); // Recargar la tabla
+                } else {
+                    alert("Error al actualizar la reserva");
+                }
+            })
+            .catch((error) => console.error("Error updating reservation:", error));
+    }
+
+    function cancelEdit(reservaId) {
+        loadReservations(); // Recargar la tabla para restaurar los valores originales
+    }
+
+    function deleteReservation(reservaId) {
+        if (confirm("¿Estás seguro de que deseas eliminar esta reserva?")) {
+            fetch(`http://localhost:8000/reservas/${reservaId}/`, {
+                method: "DELETE",
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        alert("Reserva eliminada con éxito");
+                        loadReservations(); // Recargar la tabla
+                    } else {
+                        alert("Error al eliminar la reserva");
+                    }
+                })
+                .catch((error) => console.error("Error deleting reservation:", error));
+        }
+    }
+
+    // Filtrar por cliente o cédula
+    function filterClient() {
+        const searchValue = document.getElementById("search-client").value.toLowerCase();
+        const tableRows = document.querySelectorAll("#reservations-table tbody tr");
+
+        tableRows.forEach((row) => {
+            const cells = row.querySelectorAll("td");
+            const cliente = cells[2] ? cells[2].textContent.toLowerCase() : ""; // Cliente
+            const cedula = cells[3] ? cells[3].textContent.toLowerCase() : ""; // Cedula
+
+            // Verificar
+            const matchesFilter = !searchValue || cliente.includes(searchValue) || cedula.includes(searchValue);
+
+            // Mostrar u ocultar la fila según los criterios
+            if (matchesFilter) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    // Filtrar por ID de reserva
+    function filterId() {
+        const searchValue = document.getElementById("search-id").value.toLowerCase();
+        const tableRows = document.querySelectorAll("#reservations-table tbody tr");
+
+        tableRows.forEach((row) => {
+            const cells = row.querySelectorAll("td");
+            const idReserva = cells[1] ? cells[1].textContent.toLowerCase() : ""; // ID Reserva
+
+            // Verificar
+            const matchesFilter = !searchValue || idReserva.includes(searchValue);
+
+            // Mostrar u ocultar la fila según los criterios
+            if (matchesFilter) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+    // Filtrar por estado
+
+    function filterTable() {
+        const filterValue = document.getElementById("filter-column").value;
+        const tableRows = document.querySelectorAll("#reservations-table tbody tr");
+
+        tableRows.forEach((row) => {
+            const cells = row.querySelectorAll("td");
+            const estado = cells[0] ? cells[0].textContent.toLowerCase() : ""; // Estado
+
+            // Verificar
+            const matchesFilter = !filterValue || estado.includes(filterValue);
+
+            // Mostrar u ocultar la fila según los criterios
+            if (matchesFilter) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    function createReservation() {
+        const estado = document.getElementById("new-estado").value;
+        const cliente = document.getElementById("new-cliente").value;
+        const cedula = document.getElementById("new-cedula").value;
+        const fecha = document.getElementById("new-fecha").value;
+        const hora = document.getElementById("new-hora").value;
+        const personas = document.getElementById("new-personas").value;
+        const mesa = document.getElementById("new-mesa").value;
+
+        if (!cliente || !cedula || !fecha || !hora || !personas || !mesa) {
+            alert("Por favor, completa todos los campos.");
+            return;
+        }
+
+        const newReservation = {
+            estado,
+            cliente,
+            cedula,
+            fecha,
+            hora_inicio: hora,
+            personas: parseInt(personas),
+            mesa_id: parseInt(mesa),
+        };
+
+        fetch("http://localhost:8000/reservas/create/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newReservation),
+        })
+            .then((response) => {
+                if (response.ok) {
+                    alert("Reserva creada con éxito");
+                    loadReservations(); // Recargar la tabla
+                } else {
+                    alert("Error al crear la reserva");
+                }
+            })
+            .catch((error) => console.error("Error creating reservation:", error));
+    }
+</script>
+
+</html>

@@ -12,6 +12,7 @@ class User(SQLModel, table=True):
     name: str = Field(index=True)
     cedula: str = Field(sa_column=Column(String, unique=True, nullable=False))
     email: str = Field(sa_column=Column(String, unique=True, nullable=False))
+    phone: str = Field(sa_column=Column(String, nullable=False))
     birthdate: str = Field(sa_column=Column(String, nullable=False))
     roles: list[str] = Field(default_factory=list, sa_column=Column(JSON))
 
@@ -36,6 +37,7 @@ UserAuth.user = Relationship(back_populates="auth")
 class UserCreate(BaseModel):
     name: str
     cedula: str
+    phone: str
     email: str
     birthdate: str
     password: str
