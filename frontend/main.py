@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from typing import Optional
 
 
 app = FastAPI()
@@ -16,7 +17,7 @@ def read_login():
 
 
 @app.get("/register/", response_class=HTMLResponse)
-def read_register():
+def read_register(adminCreate: Optional[bool] = None):
     with open("html/registro.html", "r") as file:
         return HTMLResponse(content=file.read())
 

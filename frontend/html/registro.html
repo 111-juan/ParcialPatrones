@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
@@ -41,7 +41,7 @@
             </div>
             <div class="form-input">
                 <label for="reg-pass">Contraseña</label>
-                <input type="password" id="reg-pass" required />
+                <input type="password" id="reg-pass" required autocomplete="new-password" />
             </div>
             <div class="button-group">
                 <button class="primary" type="submit">Registrarme</button>
@@ -102,6 +102,9 @@
                 if (data.status === "success") {
                     alert("Registro exitoso");
                     // Redirigir a la página de reservas
+                    if (adminCreate) {
+                        window.history.back()
+                    }
                     window.location.href = "/";
                 } else {
                     alert("Error en el registro: " + data.message);
@@ -115,6 +118,40 @@
 
     function validateID(input) {
         input.value = input.value.replace(/[^0-9]/g, '');
+    }
+
+    // Función que obtiene parámetros de la URL
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    // Mostrar mensaje de error si ?error=true
+    const adminCreate = getQueryParam("adminCreate");
+    if (adminCreate) {
+        const input_password = document.getElementById("reg-pass")
+        input_password.type = 'text'
+        fetch('http://localhost:8000/users/random-password/', { method: 'GET' })
+            .then((response) => {
+                if (!response.ok) {
+                    // Si la respuesta no es exitosa, lanza un error con el cuerpo de la respuesta
+                    return response.json().then((errorData) => {
+                        throw new Error(errorData.message || "Error en el servidor");
+                    });
+                }
+                return response.json(); // Extraer el cuerpo de la respuesta si es exitosa
+            })
+            .then((response) => {
+                if (response.status === "success") {
+                    input_password.value = response.data.password
+                } else {
+                    alert("Error: " + data.message);
+                }
+            })
+            .catch((error) => {
+                alert("Error: " + error.message);
+                console.error("Error:", error);
+            });
     }
 </script>
 

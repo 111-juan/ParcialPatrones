@@ -7,6 +7,7 @@ from models.user import User, UserAuth, UserCreate, UserLogin
 from dependencies.database import SessionDep
 from dependencies.security import hash_password
 from models.api_response import APIResponse
+from dependencies.security import generate_secure_password
 
 router = APIRouter(prefix="/users")
 
@@ -165,6 +166,33 @@ def read_user(user_id: int, session: SessionDep) -> APIResponse:
         )
 
 
+@router.get("/cedula/{cedula}")
+def read_user_by_cedula(cedula: str, session: SessionDep) -> APIResponse:
+    try:
+        # Buscar el usuario por cédula
+        id = session.exec(
+            select(User.id).where(User.cedula == cedula)
+        ).first()
+        if not id:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Respuesta exitosa
+        return APIResponse(
+            code=200,
+            status="success",
+            message="User retrieved successfully",
+            data={"id": id},
+        )
+    except HTTPException as http_exc:
+        # Re-lanzar excepciones HTTP específicas
+        raise http_exc
+    except Exception as e:
+        # Manejar errores inesperados
+        raise HTTPException(
+            status_code=500, detail=f"An unexpected error occurred: {str(e)}"
+        )
+
+
 @router.delete("/{user_id}")
 def delete_user(user_id: int, session: SessionDep) -> APIResponse:
     try:
@@ -279,3 +307,15 @@ def update_user_roles(user_id: int, roles: list[str], session: SessionDep) -> AP
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )
+
+
+@router.get("/random-password/")
+def generate_random_password() -> APIResponse:
+    return APIResponse(
+        code=200,
+        status="success",
+        message="Password generated successfully",
+        data={
+            "password": generate_secure_password()
+        },
+    )

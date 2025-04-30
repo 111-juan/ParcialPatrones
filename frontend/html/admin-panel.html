@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
@@ -144,6 +144,11 @@
                 <option value="vencida">Vencidas</option>
                 <option value="completada">Completadas</option>
             </select>
+
+        </div>
+        <div class="buttons-action">
+            <button onclick="createReserva()">Crear reserva</button>
+            <button onclick="window.location.href = '/register/?adminCreate=True'">Registrar Usuario</button>
         </div>
         <table id="reservations-table">
             <thead>
@@ -162,42 +167,6 @@
             </thead>
             <tbody>
                 <!-- Aquí se cargarán las reservas existentes -->
-                <tr id="new-reservation-row">
-                    <td>
-                        <select id="new-estado">
-                            <option value="activa">Activa</option>
-                            <option value="cancelada">Cancelada</option>
-                            <option value="completada">Completada</option>
-                            <option value="vencida">Vencida</option>
-                        </select>
-                    </td>
-                    <td>Auto</td> <!-- ID generado automáticamente -->
-                    <td><input type="text" id="new-cliente" placeholder="Nombre del cliente" required /></td>
-                    <td><input type="text" id="new-cedula" placeholder="Cédula del cliente" required /></td>
-                    <td><input type="date" id="new-fecha" required /></td>
-                    <td>
-                        <select id="new-hora" required>
-                            <option value="13:00">13:00</option>
-                            <option value="14:00">14:00</option>
-                            <option value="15:00">15:00</option>
-                            <option value="16:00">16:00</option>
-                            <option value="17:00">17:00</option>
-                            <option value="18:00">18:00</option>
-                            <option value="19:00">19:00</option>
-                            <option value="20:00">20:00</option>
-                            <option value="21:00">21:00</option>
-                            <option value="22:00">22:00</option>
-                        </select>
-                    </td>
-                    <td><input type="number" id="new-personas" min="1" max="10" placeholder="Personas" required /></td>
-                    <td><input type="number" id="new-mesa" placeholder="Mesa" required /></td>
-                    <td>
-                        <button onclick="createReservation()" title="Crear"
-                            style="background: none; border: none; cursor: pointer;">
-                            <i class="fas fa-plus-circle" style="font-size: 20px; color: green;"></i>
-                        </button>
-                    </td>
-                </tr>
             </tbody>
         </table>
     </div>
@@ -479,6 +448,30 @@
                 }
             })
             .catch((error) => console.error("Error creating reservation:", error));
+    }
+
+    function createReserva() {
+        const cedula = prompt("Ingrese la cédula del cliente:");
+        if (!cedula) {
+            alert("Por favor, ingrese una cédula válida.");
+            return;
+        }
+
+        fetch(`http://localhost:8000/users/cedula/${cedula}`)
+            .then(response => {
+                if (!response.ok) {
+                    alert("Cliente no encontrado.");
+                    return;
+                }
+                return response.json();
+            })
+            .then(response => {
+                if (response.data) {
+                    // Aquí puedes redirigir a la página de creación de reserva
+                    window.location.href = `/reservas/create/${response.data.id}`;
+                }
+            })
+            .catch(error => console.error('Error fetching client:', error));
     }
 </script>
 

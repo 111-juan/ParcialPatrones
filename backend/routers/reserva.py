@@ -120,11 +120,10 @@ def select_table(capacidad: int, fecha: str, hora: str, session: SessionDep, mes
     ).all()
     mesas_reservadas = [reserva.mesa_id for reserva in reservas]
 
-    mesas = [mesa for mesa in mesas if mesa.id not in mesas_reservadas]
+    mesas = [
+        mesa for mesa in mesas if mesa.id not in mesas_reservadas or mesa.id == mesa_id]
     if not mesas:
         raise HTTPException(status_code=404, detail="No available table found")
-    if mesa_id:
-        mesas.append(mesa_id)
 
     # Si hay mesas disponibles, seleccionar la más cercana a la capacidad requerida
     min_diferencia = 0
